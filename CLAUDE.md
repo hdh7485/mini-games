@@ -3,19 +3,29 @@
 이 파일은 Claude Code가 이 프로젝트를 이해하기 위한 컨텍스트를 제공합니다.
 
 ## 프로젝트 개요
-한국어 스도쿠 웹 애플리케이션. 4가지 난이도(쉬움/보통/어려움/전문가)별 10개씩 총 40개 퍼즐을 제공합니다.
+한국어 게임 포털 사이트. 스도쿠와 스파이더 카드놀이를 제공합니다.
 
 ## 기술 스택
 - 프론트엔드: 순수 HTML5 / CSS3 / Vanilla JavaScript (프레임워크 없음)
+- 백엔드: Node.js + Express + SQLite (스도쿠 인증/저장용)
 - 배포: Docker (nginx:alpine)
 
 ## 프로젝트 구조
 ```
-app.js       - 게임 로직, 상태 관리, 이벤트 핸들링
-index.html   - 메인 HTML (단일 페이지 앱)
-style.css    - 전체 스타일링 (CSS 변수, 반응형)
-puzzles.js   - 퍼즐 데이터 (난이도별 10개, 총 40개)
-Dockerfile   - nginx 기반 컨테이너
+public/
+  index.html     - 게임 포털 (게임 선택 화면)
+  portal.css     - 포털 스타일링
+  sudoku/        - 스도쿠 게임
+    index.html   - 스도쿠 HTML
+    app.js       - 스도쿠 게임 로직
+    style.css    - 스도쿠 스타일링
+    puzzles.js   - 퍼즐 데이터 (40개)
+  spider/        - 스파이더 카드놀이
+    index.html   - 스파이더 HTML
+    app.js       - 스파이더 게임 로직
+    style.css    - 스파이더 스타일링
+server.js        - Express 백엔드 (인증/데이터 API)
+Dockerfile       - nginx 기반 컨테이너
 ```
 
 ## 주요 규칙
@@ -26,14 +36,22 @@ Dockerfile   - nginx 기반 컨테이너
 
 ## 빌드 & 실행
 ```bash
-docker build -t sudoku .
-docker run -p 8080:80 sudoku
+npm start          # Express 서버 (포트 3000)
+docker build -t games .
+docker run -p 8080:80 games
 ```
-브라우저에서 http://localhost:8080 접속
 
-## 게임 상태 구조
+## 게임별 상태 구조
+### 스도쿠
 - `state.board`: 9x9 현재 보드
 - `state.solution`: 9x9 정답
 - `state.given`: 9x9 주어진 셀 여부
 - `state.memos`: 9x9 메모 Set 배열
-- localStorage 키: `sudoku-progress` (진행), `sudoku-completed` (완료)
+- localStorage 키: `sudoku-progress`, `sudoku-completed`
+
+### 스파이더 카드놀이
+- `state.columns`: 10개 열의 카드 배열
+- `state.stock`: 딜할 남은 카드
+- `state.completed`: 완성된 수트 세트
+- 1/2/4 수트 모드 지원
+- 되돌리기(undo) 기능
