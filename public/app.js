@@ -1,83 +1,138 @@
+// ===== 인증 상태 =====
+const auth = {
+    token: null,
+    username: null,
+    isGuest: false,
+};
+
+// ===== API 헬퍼 =====
+async function api(method, path, body) {
+    const opts = {
+        method,
+        headers: { "Content-Type": "application/json" },
+    };
+    if (auth.token) opts.headers["Authorization"] = `Bearer ${auth.token}`;
+    if (body) opts.body = JSON.stringify(body);
+
+    const res = await fetch(`/api${path}`, opts);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "요청 실패");
+    return data;
+}
+
 // ===== 상태 관리 =====
 const state = {
     currentDifficulty: null,
     currentPuzzleIndex: null,
-    board: [],          // 현재 보드 상태 (9x9)
-    solution: [],       // 정답 (9x9)
-    given: [],          // 주어진 셀 여부 (9x9 boolean)
-    memos: [],          // 메모 (9x9 Set)
-    selectedCell: null, // { row, col }
+    board: [],
+    solution: [],
+    given: [],
+    memos: [],
+    selectedCell: null,
     memoMode: false,
     hints: 3,
     timerSeconds: 0,
     timerInterval: null,
-    errors: new Set(),  // "row,col" 형태
+    errors: new Set(),
 };
 
-// ===== localStorage 진행 상황 =====
-function getProgress() {
+// 서버/로컬 데이터 캐시
+let cachedProgress = {};
+let cachedCompleted = {};
+
+// ===== 데이터 로드/저장 (서버 or localStorage) =====
+async function loadAllData() {
+    if (auth.isGuest) {
+        try {
+            cachedProgress = JSON.parse(localStorage.getItem("sudoku-progress")) || {};
+        } catch { cachedProgress = {}; }
+        try {
+            cachedCompleted = JSON.parse(localStorage.getItem("sudoku-completed")) || {};
+        } catch { cachedCompleted = {}; }
+        return;
+    }
     try {
-        return JSON.parse(localStorage.getItem("sudoku-progress")) || {};
-    } catch {
-        return {};
+        const data = await api("GET", "/data");
+        cachedProgress = data.progress || {};
+        // 서버 completed format: { difficulty: [{index, clearTime}] }
+        // 내부 format: { difficulty: [index, ...] }
+        cachedCompleted = {};
+        for (const [diff, items] of Object.entries(data.completed || {})) {
+            cachedCompleted[diff] = items.map(it => it.index);
+        }
+    } catch (e) {
+        console.error("데이터 로드 실패:", e);
     }
 }
 
-function saveProgress() {
-    const progress = getProgress();
+function getProgress() {
+    return cachedProgress;
+}
+
+async function saveProgress() {
     const key = `${state.currentDifficulty}_${state.currentPuzzleIndex}`;
-    progress[key] = {
+    const data = {
         board: state.board.map(r => [...r]),
         memos: state.board.map((_, ri) => state.memos[ri].map(s => [...s])),
         timerSeconds: state.timerSeconds,
         hints: state.hints,
     };
-    localStorage.setItem("sudoku-progress", JSON.stringify(progress));
+    cachedProgress[key] = data;
+
+    if (auth.isGuest) {
+        localStorage.setItem("sudoku-progress", JSON.stringify(cachedProgress));
+    } else {
+        try { await api("POST", "/progress", { puzzleKey: key, data }); } catch {}
+    }
 }
 
 function loadSavedState(difficulty, index) {
-    const progress = getProgress();
     const key = `${difficulty}_${index}`;
-    return progress[key] || null;
+    return cachedProgress[key] || null;
 }
 
-function clearSavedState(difficulty, index) {
-    const progress = getProgress();
-    delete progress[`${difficulty}_${index}`];
-    localStorage.setItem("sudoku-progress", JSON.stringify(progress));
+async function clearSavedState(difficulty, index) {
+    const key = `${difficulty}_${index}`;
+    delete cachedProgress[key];
+
+    if (auth.isGuest) {
+        localStorage.setItem("sudoku-progress", JSON.stringify(cachedProgress));
+    } else {
+        try { await api("DELETE", `/progress/${key}`); } catch {}
+    }
 }
 
 function getCompletedPuzzles() {
-    try {
-        return JSON.parse(localStorage.getItem("sudoku-completed")) || {};
-    } catch {
-        return {};
-    }
+    return cachedCompleted;
 }
 
-function markCompleted(difficulty, index) {
-    const completed = getCompletedPuzzles();
-    if (!completed[difficulty]) completed[difficulty] = [];
-    if (!completed[difficulty].includes(index)) {
-        completed[difficulty].push(index);
+async function markCompleted(difficulty, index) {
+    if (!cachedCompleted[difficulty]) cachedCompleted[difficulty] = [];
+    if (!cachedCompleted[difficulty].includes(index)) {
+        cachedCompleted[difficulty].push(index);
     }
-    localStorage.setItem("sudoku-completed", JSON.stringify(completed));
-    clearSavedState(difficulty, index);
+
+    if (auth.isGuest) {
+        localStorage.setItem("sudoku-completed", JSON.stringify(cachedCompleted));
+        delete cachedProgress[`${difficulty}_${index}`];
+        localStorage.setItem("sudoku-progress", JSON.stringify(cachedProgress));
+    } else {
+        try {
+            await api("POST", "/completed", { difficulty, puzzleIndex: index, clearTime: state.timerSeconds });
+        } catch {}
+    }
 }
 
 function isCompleted(difficulty, index) {
-    const completed = getCompletedPuzzles();
-    return completed[difficulty]?.includes(index) || false;
+    return cachedCompleted[difficulty]?.includes(index) || false;
 }
 
 function getCompletedCount(difficulty) {
-    const completed = getCompletedPuzzles();
-    return completed[difficulty]?.length || 0;
+    return cachedCompleted[difficulty]?.length || 0;
 }
 
 function hasSavedState(difficulty, index) {
-    const progress = getProgress();
-    return !!progress[`${difficulty}_${index}`];
+    return !!cachedProgress[`${difficulty}_${index}`];
 }
 
 // ===== 화면 전환 =====
@@ -150,7 +205,6 @@ function startGame(difficulty, index) {
 
     state.given = puzzleGrid.map(r => r.map(v => v !== 0));
 
-    // 저장된 상태 불러오기
     const saved = loadSavedState(difficulty, index);
     if (saved) {
         state.board = saved.board.map(r => [...r]);
@@ -215,7 +269,6 @@ function renderBoard() {
                     td.classList.add("error");
                 }
             } else {
-                // 메모 표시
                 const memos = state.memos[r][c];
                 if (memos.size > 0) {
                     const memoDiv = document.createElement("div");
@@ -229,7 +282,6 @@ function renderBoard() {
                 }
             }
 
-            // 하이라이트
             if (state.selectedCell) {
                 const { row: sr, col: sc } = state.selectedCell;
                 if (r === sr && c === sc) {
@@ -237,7 +289,6 @@ function renderBoard() {
                 } else if (r === sr || c === sc || (Math.floor(r / 3) === Math.floor(sr / 3) && Math.floor(c / 3) === Math.floor(sc / 3))) {
                     td.classList.add("highlighted");
                 }
-                // 같은 숫자 하이라이트
                 const selectedVal = state.board[sr][sc];
                 if (selectedVal !== 0 && val === selectedVal && !(r === sr && c === sc)) {
                     td.classList.add("same-num");
@@ -264,12 +315,10 @@ function inputNumber(num) {
     if (state.given[row][col]) return;
 
     if (num === 0) {
-        // 지우기
         state.board[row][col] = 0;
         state.memos[row][col].clear();
         state.errors.delete(`${row},${col}`);
     } else if (state.memoMode) {
-        // 메모 모드
         if (state.board[row][col] !== 0) {
             state.board[row][col] = 0;
         }
@@ -280,12 +329,10 @@ function inputNumber(num) {
             memoSet.add(num);
         }
     } else {
-        // 일반 입력
         state.board[row][col] = num;
         state.memos[row][col].clear();
         state.errors.delete(`${row},${col}`);
 
-        // 완료 체크
         if (isBoardFull()) {
             if (checkSolution()) {
                 onPuzzleComplete();
@@ -317,7 +364,6 @@ function checkBoard() {
     renderBoard();
 
     if (!hasError && !isBoardFull()) {
-        // 입력된 것들은 모두 맞음
         showTemporaryMessage("현재까지 맞게 입력했습니다!");
     } else if (!hasError && isBoardFull()) {
         onPuzzleComplete();
@@ -357,7 +403,6 @@ function useHint() {
     state.hints--;
     document.getElementById("hint-count").textContent = state.hints;
 
-    // 힌트로 입력된 셀 표시
     state.given[row][col] = true;
 
     saveProgress();
@@ -396,7 +441,6 @@ function onPuzzleComplete() {
     modal.querySelector(".modal-buttons").style.display = "";
     modal.classList.add("active");
 
-    // 다음 퍼즐 버튼 설정
     const nextIndex = state.currentPuzzleIndex + 1;
     const nextBtn = document.getElementById("btn-next-puzzle");
     if (nextIndex < PUZZLES[state.currentDifficulty].length) {
@@ -411,6 +455,89 @@ function onPuzzleComplete() {
 function updateMemoButton() {
     const btn = document.getElementById("btn-memo");
     btn.classList.toggle("active", state.memoMode);
+}
+
+// ===== 인증 UI =====
+let isRegisterMode = false;
+
+function setupAuthUI() {
+    const form = document.getElementById("auth-form");
+    const switchBtn = document.getElementById("auth-switch");
+    const guestBtn = document.getElementById("guest-login");
+    const errorEl = document.getElementById("auth-error");
+
+    switchBtn.addEventListener("click", () => {
+        isRegisterMode = !isRegisterMode;
+        document.getElementById("auth-subtitle").textContent = isRegisterMode ? "회원가입" : "로그인";
+        document.getElementById("auth-submit").textContent = isRegisterMode ? "회원가입" : "로그인";
+        document.getElementById("auth-toggle").innerHTML = isRegisterMode
+            ? '이미 계정이 있으신가요? <a id="auth-switch">로그인</a>'
+            : '계정이 없으신가요? <a id="auth-switch">회원가입</a>';
+        document.getElementById("auth-switch").addEventListener("click", arguments.callee);
+        errorEl.textContent = "";
+    });
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        errorEl.textContent = "";
+        const username = document.getElementById("auth-username").value.trim();
+        const password = document.getElementById("auth-password").value;
+
+        if (!username || !password) {
+            errorEl.textContent = "아이디와 비밀번호를 입력하세요";
+            return;
+        }
+
+        try {
+            const endpoint = isRegisterMode ? "/register" : "/login";
+            const data = await api("POST", endpoint, { username, password });
+            auth.token = data.token;
+            auth.username = data.username;
+            auth.isGuest = false;
+            localStorage.setItem("sudoku-auth-token", data.token);
+            localStorage.setItem("sudoku-auth-username", data.username);
+            await enterApp();
+        } catch (err) {
+            errorEl.textContent = err.message;
+        }
+    });
+
+    guestBtn.addEventListener("click", async () => {
+        auth.token = null;
+        auth.username = "게스트";
+        auth.isGuest = true;
+        localStorage.removeItem("sudoku-auth-token");
+        localStorage.removeItem("sudoku-auth-username");
+        await enterApp();
+    });
+}
+
+async function enterApp() {
+    document.getElementById("display-username").textContent = auth.username;
+    await loadAllData();
+    updateHomeProgress();
+    showScreen("home-screen");
+}
+
+async function tryAutoLogin() {
+    const token = localStorage.getItem("sudoku-auth-token");
+    const username = localStorage.getItem("sudoku-auth-username");
+    if (token && username) {
+        auth.token = token;
+        auth.username = username;
+        auth.isGuest = false;
+        try {
+            await api("GET", "/me");
+            await enterApp();
+            return;
+        } catch {
+            localStorage.removeItem("sudoku-auth-token");
+            localStorage.removeItem("sudoku-auth-username");
+            auth.token = null;
+            auth.username = null;
+        }
+    }
+    showScreen("auth-screen");
 }
 
 // ===== 키보드 입력 =====
@@ -441,6 +568,8 @@ document.addEventListener("keydown", (e) => {
 
 // ===== 이벤트 바인딩 =====
 document.addEventListener("DOMContentLoaded", () => {
+    setupAuthUI();
+
     // 난이도 카드 클릭
     document.querySelectorAll(".difficulty-card").forEach(card => {
         card.addEventListener("click", () => {
@@ -495,6 +624,21 @@ document.addEventListener("DOMContentLoaded", () => {
         showScreen("home-screen");
     });
 
-    // 초기화
-    updateHomeProgress();
+    // 로그아웃
+    document.getElementById("btn-logout").addEventListener("click", async () => {
+        if (!auth.isGuest) {
+            try { await api("POST", "/logout"); } catch {}
+        }
+        auth.token = null;
+        auth.username = null;
+        auth.isGuest = false;
+        localStorage.removeItem("sudoku-auth-token");
+        localStorage.removeItem("sudoku-auth-username");
+        cachedProgress = {};
+        cachedCompleted = {};
+        showScreen("auth-screen");
+    });
+
+    // 자동 로그인 시도
+    tryAutoLogin();
 });
