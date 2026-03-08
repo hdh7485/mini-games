@@ -33,7 +33,8 @@ const state = {
     hints: 3,
     timerSeconds: 0,
     timerInterval: null,
-    errors: new Set(),
+    errors: new Set(),  // "row,col" 형태
+    isPaused: false,
 };
 
 // 서버/로컬 데이터 캐시
@@ -242,6 +243,20 @@ function stopTimer() {
     clearInterval(state.timerInterval);
 }
 
+function pauseGame() {
+    if (state.isPaused) return;
+    state.isPaused = true;
+    stopTimer();
+    document.getElementById("pause-overlay").classList.add("active");
+}
+
+function resumeGame() {
+    if (!state.isPaused) return;
+    state.isPaused = false;
+    document.getElementById("pause-overlay").classList.remove("active");
+    startTimer();
+}
+
 function updateTimerDisplay() {
     const min = Math.floor(state.timerSeconds / 60).toString().padStart(2, "0");
     const sec = (state.timerSeconds % 60).toString().padStart(2, "0");
@@ -304,12 +319,14 @@ function renderBoard() {
 
 // ===== 셀 선택 =====
 function selectCell(row, col) {
+    if (state.isPaused) return;
     state.selectedCell = { row, col };
     renderBoard();
 }
 
 // ===== 숫자 입력 =====
 function inputNumber(num) {
+    if (state.isPaused) return;
     if (!state.selectedCell) return;
     const { row, col } = state.selectedCell;
     if (state.given[row][col]) return;
@@ -544,6 +561,11 @@ async function tryAutoLogin() {
 document.addEventListener("keydown", (e) => {
     if (!document.getElementById("game-screen").classList.contains("active")) return;
 
+    if (e.key === "Escape") {
+        if (state.isPaused) resumeGame();
+        else pauseGame();
+        return;
+    }
     if (e.key >= "1" && e.key <= "9") {
         inputNumber(parseInt(e.key, 10));
     } else if (e.key === "Backspace" || e.key === "Delete" || e.key === "0") {
@@ -607,6 +629,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 검사 버튼
     document.getElementById("btn-check").addEventListener("click", checkBoard);
+
+    // 일시정지 버튼
+    document.getElementById("btn-pause").addEventListener("click", pauseGame);
+    document.getElementById("btn-resume").addEventListener("click", resumeGame);
 
     // 모달 버튼
     document.getElementById("btn-next-puzzle").addEventListener("click", () => {
