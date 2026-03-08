@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>스파이더 카드놀이</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- 메뉴 화면 -->
+        <div id="menu-screen" class="screen active">
+            <div class="menu-container">
+                <a href="../index.html" class="back-link">← 미니게임즈</a>
+                <h1>스파이더 카드놀이</h1>
+                <p class="subtitle">수트 수를 선택하세요</p>
+                <div class="suit-options">
+                    <button class="suit-btn" data-suits="1">
+                        <span class="suit-icons">♠</span>
+                        <span class="suit-label">1 수트</span>
+                        <span class="suit-diff">쉬움</span>
+                    </button>
+                    <button class="suit-btn" data-suits="2">
+                        <span class="suit-icons">♠ ♥</span>
+                        <span class="suit-label">2 수트</span>
+                        <span class="suit-diff">보통</span>
+                    </button>
+                    <button class="suit-btn" data-suits="4">
+                        <span class="suit-icons">♠ ♥ ♦ ♣</span>
+                        <span class="suit-label">4 수트</span>
+                        <span class="suit-diff">어려움</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 게임 화면 -->
+        <div id="game-screen" class="screen">
+            <div class="game-header">
+                <button id="btn-back" class="header-btn">← 메뉴</button>
+                <div class="game-info">
+                    <span class="info-item">이동: <strong id="move-count">0</strong></span>
+                    <span class="info-item">점수: <strong id="score">500</strong></span>
+                    <span class="info-item" id="timer-display">시간: <strong id="timer">00:00</strong></span>
+                </div>
+                <div class="header-actions">
+                    <button id="btn-undo" class="header-btn" title="되돌리기">↩</button>
+                    <button id="btn-new" class="header-btn" title="새 게임">새 게임</button>
+                </div>
+            </div>
+            <div class="table-area">
+                <div class="completed-area" id="completed-area"></div>
+                <div class="columns" id="columns"></div>
+                <div class="stock-area" id="stock-area"></div>
+            </div>
+        </div>
+
+        <!-- 완료 모달 -->
+        <div id="win-modal" class="modal">
+            <div class="modal-content">
+                <h2>🎉 축하합니다!</h2>
+                <p id="win-message"></p>
+                <div class="modal-buttons">
+                    <button id="btn-new-game" class="btn-primary">새 게임</button>
+                    <button id="btn-menu" class="btn-secondary">메뉴로</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

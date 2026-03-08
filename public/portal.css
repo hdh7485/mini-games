@@ -1,0 +1,155 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+}
+
+.portal {
+    text-align: center;
+    padding: 40px 20px;
+    width: 100%;
+    max-width: 700px;
+}
+
+.portal-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #e8c547, #f5a623);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.portal-subtitle {
+    font-size: 1.1rem;
+    color: #8899aa;
+    margin-bottom: 48px;
+}
+
+.game-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+    padding: 0 10px;
+}
+
+.game-card {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 36px 24px 28px;
+    text-decoration: none;
+    color: #fff;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.game-card:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(232, 197, 71, 0.4);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+.game-icon {
+    width: 100px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+/* Mini sudoku icon */
+.mini-sudoku {
+    border-collapse: collapse;
+}
+
+.mini-sudoku td {
+    width: 28px;
+    height: 28px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: #e8c547;
+}
+
+/* Mini cards icon */
+.mini-cards {
+    position: relative;
+    width: 80px;
+    height: 90px;
+}
+
+.mini-card {
+    position: absolute;
+    width: 50px;
+    height: 70px;
+    background: #fff;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: #1a1a2e;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.mini-card.c1 {
+    top: 0;
+    left: 0;
+    transform: rotate(-8deg);
+}
+
+.mini-card.c2 {
+    top: 5px;
+    left: 15px;
+    transform: rotate(0deg);
+    z-index: 1;
+}
+
+.mini-card.c3 {
+    top: 10px;
+    left: 30px;
+    transform: rotate(8deg);
+}
+
+.game-name {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.game-desc {
+    font-size: 0.9rem;
+    color: #8899aa;
+}
+
+@media (max-width: 600px) {
+    .portal-title {
+        font-size: 2rem;
+    }
+
+    .game-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .game-card {
+        padding: 28px 20px 24px;
+    }
+}

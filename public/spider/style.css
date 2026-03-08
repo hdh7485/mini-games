@@ -1,0 +1,352 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #1a6b3c;
+    min-height: 100vh;
+    color: #fff;
+    overflow-x: hidden;
+}
+
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* === 메뉴 화면 === */
+.menu-container {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.back-link {
+    display: inline-block;
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    font-size: 0.95rem;
+    margin-bottom: 40px;
+}
+
+.back-link:hover { color: #fff; }
+
+.menu-container h1 {
+    font-size: 2.2rem;
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 40px;
+    font-size: 1.05rem;
+}
+
+.suit-options {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.suit-btn {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 14px;
+    padding: 20px 24px;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+.suit-btn:hover {
+    background: rgba(255,255,255,0.18);
+    transform: translateY(-2px);
+}
+
+.suit-icons {
+    font-size: 1.4rem;
+    min-width: 80px;
+    text-align: center;
+}
+
+.suit-label {
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.suit-diff {
+    margin-left: auto;
+    color: rgba(255,255,255,0.5);
+    font-size: 0.9rem;
+}
+
+/* === 게임 헤더 === */
+.game-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: rgba(0,0,0,0.2);
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.header-btn {
+    background: rgba(255,255,255,0.15);
+    border: none;
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+
+.header-btn:hover { background: rgba(255,255,255,0.25); }
+
+.header-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.game-info {
+    display: flex;
+    gap: 16px;
+    font-size: 0.9rem;
+}
+
+.info-item { color: rgba(255,255,255,0.8); }
+.info-item strong { color: #fff; }
+
+/* === 테이블 영역 === */
+.table-area {
+    padding: 12px 8px;
+    max-width: 1000px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.completed-area {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 12px;
+    min-height: 20px;
+    flex-wrap: wrap;
+}
+
+.completed-set {
+    width: 36px;
+    height: 50px;
+    background: #fff;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: #1a1a2e;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* === 카드 컬럼 === */
+.columns {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+}
+
+.column {
+    flex: 1;
+    max-width: 90px;
+    min-height: 300px;
+    position: relative;
+}
+
+.card {
+    position: absolute;
+    width: 100%;
+    aspect-ratio: 5 / 7;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: box-shadow 0.15s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.card.face-up {
+    background: #fff;
+    color: #1a1a2e;
+    padding: 3px 5px;
+    display: flex;
+    flex-direction: column;
+}
+
+.card.face-down {
+    background: linear-gradient(135deg, #2c5aa0, #1e3d6f);
+    border: 1.5px solid rgba(255,255,255,0.2);
+}
+
+.card.face-down::after {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 3px;
+}
+
+.card .card-top {
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 1;
+}
+
+.card .card-suit {
+    font-size: 20px;
+    margin-top: auto;
+    text-align: center;
+}
+
+.card.red { color: #c0392b; }
+.card.black { color: #1a1a2e; }
+
+.card.selected {
+    box-shadow: 0 0 0 3px #e8c547, 0 4px 12px rgba(0,0,0,0.4);
+}
+
+.card.highlight {
+    box-shadow: 0 0 0 2px rgba(232, 197, 71, 0.5);
+}
+
+.card.dragging {
+    opacity: 0.7;
+    z-index: 1000 !important;
+}
+
+/* === 스톡 영역 === */
+.stock-area {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
+    gap: 4px;
+}
+
+.stock-pile {
+    width: 50px;
+    height: 70px;
+    background: linear-gradient(135deg, #2c5aa0, #1e3d6f);
+    border: 1.5px solid rgba(255,255,255,0.3);
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.15s;
+}
+
+.stock-pile:hover {
+    transform: translateY(-2px);
+}
+
+.stock-pile::after {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 3px;
+}
+
+/* === 모달 === */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: #fff;
+    color: #333;
+    border-radius: 20px;
+    padding: 40px 32px;
+    text-align: center;
+    max-width: 360px;
+    width: 90%;
+}
+
+.modal-content h2 {
+    font-size: 1.6rem;
+    margin-bottom: 12px;
+}
+
+.modal-content p {
+    color: #666;
+    margin-bottom: 24px;
+    line-height: 1.6;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.btn-primary, .btn-secondary {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: #1a6b3c;
+    color: #fff;
+}
+
+.btn-primary:hover { background: #15562f; }
+
+.btn-secondary {
+    background: #e9ecef;
+    color: #333;
+}
+
+.btn-secondary:hover { background: #dee2e6; }
+
+/* === 반응형 === */
+@media (max-width: 600px) {
+    .columns { gap: 3px; }
+    .column { max-width: 70px; }
+    .card { font-size: 11px; border-radius: 4px; }
+    .card .card-top { font-size: 12px; }
+    .card .card-suit { font-size: 16px; }
+    .game-info { gap: 10px; font-size: 0.8rem; }
+    .stock-pile { width: 40px; height: 56px; }
+}
+
+@media (max-width: 400px) {
+    .column { max-width: 55px; }
+    .card .card-top { font-size: 10px; }
+    .card .card-suit { font-size: 13px; }
+    .card { padding: 2px 3px; }
+}
+
+@media (min-width: 768px) {
+    .column { max-width: 95px; }
+    .card { font-size: 15px; }
+    .card .card-top { font-size: 16px; }
+    .card .card-suit { font-size: 24px; }
+}
