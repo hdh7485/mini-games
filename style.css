@@ -1,0 +1,436 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary: #4a6fa5;
+    --primary-light: #6b8fc5;
+    --primary-dark: #345080;
+    --accent: #e8c547;
+    --bg: #f5f7fa;
+    --card-bg: #ffffff;
+    --text: #2d3436;
+    --text-light: #636e72;
+    --success: #27ae60;
+    --error: #e74c3c;
+    --border: #dfe6e9;
+    --cell-given: #2d3436;
+    --cell-input: #4a6fa5;
+    --cell-error: #e74c3c;
+    --cell-highlight: #e8f0fe;
+    --cell-selected: #bbdefb;
+    --cell-same-num: #d4e6fd;
+    --memo-color: #888;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+}
+
+#app {
+    width: 100%;
+    max-width: 460px;
+    padding: 16px;
+}
+
+.screen {
+    display: none;
+}
+
+.screen.active {
+    display: block;
+}
+
+/* 메인 화면 */
+h1 {
+    text-align: center;
+    font-size: 2.2rem;
+    color: var(--primary);
+    margin: 24px 0 4px;
+}
+
+.subtitle {
+    text-align: center;
+    color: var(--text-light);
+    margin-bottom: 24px;
+}
+
+.difficulty-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.difficulty-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 18px 20px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.difficulty-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+}
+
+.difficulty-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.difficulty-name {
+    font-size: 1.15rem;
+    font-weight: 600;
+}
+
+.difficulty-stars {
+    color: var(--accent);
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+}
+
+.difficulty-progress {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 8px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--success);
+    border-radius: 4px;
+    transition: width 0.4s ease;
+    width: 0;
+}
+
+.progress-text {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    white-space: nowrap;
+}
+
+/* 화면 헤더 */
+.screen-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.screen-header h2 {
+    flex: 1;
+    font-size: 1.3rem;
+}
+
+.btn-back {
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    color: var(--primary);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.btn-back:hover {
+    background: var(--cell-highlight);
+}
+
+.timer {
+    font-size: 1rem;
+    color: var(--text-light);
+    font-variant-numeric: tabular-nums;
+}
+
+/* 퍼즐 선택 그리드 */
+.puzzle-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+}
+
+.puzzle-cell {
+    aspect-ratio: 1;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s;
+    background: var(--card-bg);
+    color: var(--text);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+.puzzle-cell:hover {
+    transform: scale(1.08);
+}
+
+.puzzle-cell.completed {
+    background: var(--success);
+    color: white;
+}
+
+.puzzle-cell.in-progress {
+    background: var(--primary-light);
+    color: white;
+}
+
+/* 스도쿠 보드 */
+.board-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+#sudoku-board {
+    border-collapse: collapse;
+    border: 3px solid var(--text);
+    user-select: none;
+}
+
+#sudoku-board td {
+    width: 44px;
+    height: 44px;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 1.25rem;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    position: relative;
+    transition: background 0.1s;
+}
+
+#sudoku-board td.given {
+    font-weight: 700;
+    color: var(--cell-given);
+}
+
+#sudoku-board td.input {
+    color: var(--cell-input);
+    font-weight: 500;
+}
+
+#sudoku-board td.error {
+    color: var(--cell-error);
+    background: #ffeaea;
+}
+
+#sudoku-board td.selected {
+    background: var(--cell-selected);
+}
+
+#sudoku-board td.highlighted {
+    background: var(--cell-highlight);
+}
+
+#sudoku-board td.same-num {
+    background: var(--cell-same-num);
+}
+
+#sudoku-board td.hint-cell {
+    color: var(--success);
+    font-weight: 700;
+}
+
+/* 3x3 블록 구분선 */
+#sudoku-board td:nth-child(3),
+#sudoku-board td:nth-child(6) {
+    border-right: 3px solid var(--text);
+}
+
+#sudoku-board tr:nth-child(3) td,
+#sudoku-board tr:nth-child(6) td {
+    border-bottom: 3px solid var(--text);
+}
+
+/* 메모 표시 */
+.memo-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.memo-grid span {
+    font-size: 0.55rem;
+    color: var(--memo-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+/* 숫자 패드 */
+.num-pad {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.num-btn {
+    padding: 14px 0;
+    font-size: 1.3rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    background: var(--card-bg);
+    color: var(--primary);
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    transition: background 0.1s, transform 0.1s;
+}
+
+.num-btn:hover {
+    background: var(--cell-highlight);
+}
+
+.num-btn:active {
+    transform: scale(0.95);
+}
+
+.num-btn.active-num {
+    background: var(--primary);
+    color: white;
+}
+
+.erase-btn {
+    color: var(--error);
+}
+
+/* 게임 액션 버튼 */
+.game-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.action-btn {
+    padding: 10px 20px;
+    font-size: 0.95rem;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    background: var(--card-bg);
+    color: var(--text);
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.15s;
+}
+
+.action-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.action-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* 완료 모달 */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 100;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 32px;
+    text-align: center;
+    max-width: 340px;
+    width: 90%;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+}
+
+.modal-content h2 {
+    color: var(--success);
+    font-size: 1.6rem;
+    margin-bottom: 8px;
+}
+
+.modal-content p {
+    color: var(--text-light);
+    margin-bottom: 24px;
+}
+
+.modal-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn-primary {
+    padding: 12px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 10px;
+    background: var(--primary);
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-secondary {
+    padding: 12px;
+    font-size: 1rem;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    background: var(--card-bg);
+    color: var(--text);
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-secondary:hover { border-color: var(--primary); color: var(--primary); }
+
+/* 반응형 */
+@media (max-width: 400px) {
+    #sudoku-board td {
+        width: 38px;
+        height: 38px;
+        font-size: 1.1rem;
+    }
+    .memo-grid span {
+        font-size: 0.45rem;
+    }
+}
