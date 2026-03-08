@@ -423,6 +423,44 @@ h1 {
 .btn-primary:hover { background: var(--primary-dark); }
 .btn-secondary:hover { border-color: var(--primary); color: var(--primary); }
 
+/* 일시정지 오버레이 */
+.pause-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    z-index: 50;
+    justify-content: center;
+    align-items: center;
+}
+
+.pause-overlay.active {
+    display: flex;
+}
+
+.pause-content {
+    text-align: center;
+    padding: 40px;
+}
+
+.pause-content h2 {
+    font-size: 2rem;
+    color: var(--primary);
+    margin-bottom: 8px;
+}
+
+.pause-content p {
+    color: var(--text-light);
+    margin-bottom: 24px;
+}
+
+.pause-content .btn-primary {
+    padding: 14px 40px;
+    font-size: 1.1rem;
+}
+
 /* 반응형 */
 @media (max-width: 400px) {
     #sudoku-board td {
